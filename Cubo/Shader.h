@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable : 4996) //_CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
@@ -7,7 +8,14 @@
 #include <iostream>
 #include <vector>
 #include <GLM/glm.hpp>
+#include <stdlib.h>
+#include <cstring>
+#include <iostream>
+#define _CRT_SECURE_NO_WARNINGS
+
+
 using namespace std;
+
 
 class Material
 {
@@ -135,6 +143,9 @@ public:
 	Face * getFace(int i) {
 		return faces.at(i);
 	}
+	int sizeFaces() {
+		return faces.size();
+	}
 };
 
 class Mesh
@@ -185,6 +196,9 @@ public:
 	Group * getGroup(int i) {
 		return grupos.at(i);
 	}
+	int sizeGroups() {
+		return grupos.size();
+	}
 };
 
 class ObjReader
@@ -193,6 +207,21 @@ private:
 public:
 	ObjReader() {}
 	~ObjReader();
+
+
+
+	std::vector<std::string> split(std::string str, std::string sep) {
+		char* cstr = const_cast<char*>(str.c_str());
+		char* current;
+		std::vector<std::string> arr;
+		current = strtok(cstr, sep.c_str());
+		while (current != NULL) {
+			arr.push_back(current);
+			current = strtok(NULL, sep.c_str());
+		}
+		return arr;
+	}
+
 
 	Mesh *read(string filename) {
 		Mesh *mesh = new Mesh;
@@ -247,13 +276,47 @@ public:
 					mesh->getGroup(cont)->setNome("PADRAO");
 					mesh->getGroup(cont++)->setId(0);
 				}
-
-				int x, y, z, w;
-				sline >> x >> y >> z >> w;
+				
 				mesh->getGroup(cont - 1)->addFaces(new Face());
-				mesh->getGroup(cont - 1)->getFace(cont2)->addV(x);
-				mesh->getGroup(cont - 1)->getFace(cont2)->addV(y);
-				mesh->getGroup(cont - 1)->getFace(cont2++)->addV(z);
+
+
+
+
+
+
+
+				//int v1, v2, v3, w;
+//sline >> v1 >> v2 >> v3 >> w;
+
+				string nextVal;
+				sline >> nextVal;
+
+				while (!sline.fail()) {
+
+					vector<string> v = split("/", nextVal);
+					if (v.size() > 1) {
+						cout << v[0] << endl;
+
+						mesh->getGroup(cont - 1)->getFace(cont2)->addV(std::stoi(v[0]) - 1);
+						
+						if (v.size() > 2) {
+							mesh->getGroup(cont - 1)->getFace(cont2)->addT(std::stoi(v[1]) - 1);
+							mesh->getGroup(cont - 1)->getFace(cont2)->addN(std::stoi(v[2]) - 1);
+						}
+						else {
+							mesh->getGroup(cont - 1)->getFace(cont2)->addT(std::stoi(v[1]) - 1);
+						}
+						
+
+					}
+					else {
+						mesh->getGroup(cont - 1)->getFace(cont2)->addV(std::stoi(nextVal) - 1);
+					}
+
+					sline >> nextVal;
+				}
+				cont2++;
+
 			//	sline >> w;
 			//	cout << w << " ";
 				//cout << x << y << z;

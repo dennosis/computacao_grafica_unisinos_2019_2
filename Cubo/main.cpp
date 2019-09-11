@@ -32,17 +32,30 @@ const unsigned int SCR_HEIGHT = 600;
 int main()
 {
 	ObjReader * obj = new ObjReader();
-	Mesh * malha = obj->read("teste.obj");
+	//Mesh * malha = obj->read("teste.obj");
+	Mesh * malha = obj->read("mesa01.obj");
+	//Mesh * malha = obj->read("teste2.obj");
+	
+	//Mesh * malha = obj->read("cenaPaintball.obj");
+
 	//glm::vec2 testete = malha->getIndT(22);
 	//cout << malha->getGroup(0)->getFace(11)->getV(1);
-
-	//vector<float> vertices;
+	//return 1;
 	//normais.
-	float vertices[192];
-	unsigned int indices[36];
-	//float * vertices = new float[tam];
+	int numVertices = malha->getVector().size();
+	int numGroups = malha->sizeGroups();
 
-	for (int k = 0; k < 8; k++) {
+	cout << "[read " << numVertices << "]" << endl;
+
+	static std::vector<float> vertices;
+	static std::vector<int> indices;
+
+	//float vertices[192];
+	//unsigned int indices[36];
+	//float * vertices = new float[tam];
+	
+	//vertices
+	for (int k = 0; k < numVertices; k++) {/*
 		vertices[k * 8 + 0] = malha->getIndV(k).x;
 		vertices[k * 8 + 1] = malha->getIndV(k).y;
 		vertices[k * 8 + 2] = malha->getIndV(k).z;
@@ -53,17 +66,40 @@ int main()
 		vertices[k * 8 + 5] = malha->getIndN(k).x;
 		vertices[k * 8 + 6] = malha->getIndN(k).y;
 		vertices[k * 8 + 7] = malha->getIndN(k).z;
+		*/
+
+
+		vertices.push_back(malha->getIndV(k).x);
+		vertices.push_back(malha->getIndV(k).y);
+		vertices.push_back(malha->getIndV(k).z);
+											  
+		vertices.push_back(malha->getIndT(k).x);
+		vertices.push_back(malha->getIndT(k).y);
+		//									  
+		vertices.push_back(malha->getIndN(k).x);
+		vertices.push_back(malha->getIndN(k).y);
+		vertices.push_back(malha->getIndN(k).z);
+		
 	}
 
-	for (int k = 0; k < 12; k++) {
-		indices[k * 3 + 0] = malha->getGroup(0)->getFace(k)->getV(0);
-		indices[k * 3 + 1] = malha->getGroup(0)->getFace(k)->getV(1);
-		indices[k * 3 + 2] = malha->getGroup(0)->getFace(k)->getV(2);
+
+	//faces
+	for (int j = 0; j < numGroups; j++) {
+		for (int k = 0; k < malha->getGroup(j)->sizeFaces(); k++) {
+			indices.push_back(malha->getGroup(j)->getFace(k)->getV(0));
+			indices.push_back(malha->getGroup(j)->getFace(k)->getV(1));
+			indices.push_back(malha->getGroup(j)->getFace(k)->getV(2));
+		}
 	}
+
+
+	cout << "[read " << indices.size() << "]" << endl;
+
+
 
 	vector<Material*> materiais;
 	obj->readermaterial(malha->getnomematerial(), materiais);
-	cout << materiais.at(1)->getArquivo();
+	//cout << materiais.at(1)->getArquivo();
 
 	// glfw: initialize and configure
 	// ------------------------------
@@ -181,10 +217,10 @@ int main()
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int)*indices.size(), indices.data(), GL_STATIC_DRAW);
 
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
