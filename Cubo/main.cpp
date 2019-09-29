@@ -33,8 +33,8 @@ int main()
 {
 	ObjReader * obj = new ObjReader();
 	//Mesh * malha = obj->read("teste.obj");
-	Mesh * malha = obj->read("mesa01.obj");
-	//Mesh * malha = obj->read("teste2.obj");
+	//Mesh * malha = obj->read("mesa01.obj");
+	Mesh * malha = obj->read("teste2.obj");
 	
 	//Mesh * malha = obj->read("cenaPaintball.obj");
 
