@@ -1,7 +1,4 @@
-# This file uses centimeters as units for non-parametric coordinates.
-
 mtllib mesa01.mtl
-g default
 v -5.076482 9.064946 -5.076482
 v -5.076482 9.064946 -0.026474
 v -0.034547 9.064946 -0.026474
@@ -808,8 +805,6 @@ vn 1.000000 0.000000 0.000000
 vn 1.000000 0.000000 0.000000
 
 s 1
-g polySurface2
-usemtl lambert2SG
 f 1/1/1 2/2/2 4/4/3
 f 4/4/3 2/2/2 3/3/4
 s off

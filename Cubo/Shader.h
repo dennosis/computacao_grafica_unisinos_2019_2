@@ -210,16 +210,19 @@ public:
 
 
 
-	std::vector<std::string> split(std::string str, std::string sep) {
-		char* cstr = const_cast<char*>(str.c_str());
-		char* current;
-		std::vector<std::string> arr;
-		current = strtok(cstr, sep.c_str());
-		while (current != NULL) {
-			arr.push_back(current);
-			current = strtok(NULL, sep.c_str());
+	vector<string> split(string s, string delimiter) {
+		size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+		string token;
+		vector<string> res;
+
+		while ((pos_end = s.find(delimiter, pos_start)) != string::npos) {
+			token = s.substr(pos_start, pos_end - pos_start);
+			pos_start = pos_end + delim_len;
+			res.push_back(token);
 		}
-		return arr;
+
+		res.push_back(s.substr(pos_start));
+		return res;
 	}
 
 
@@ -248,13 +251,13 @@ public:
 				mesh->addN(glm::vec3(x, y, z));
 			}
 			else if (temp == "vt") {
-				//normais
+				//textura
 				float x, y;
 				sline >> x >> y;
 				mesh->addT(glm::vec2(x, y));
 			}
 			else if (temp == "mtllib") {
-				//normais
+				//material
 				string nomearq;
 				sline >> nomearq;
 				mesh->setnomematerial(nomearq);
@@ -270,6 +273,10 @@ public:
 				sline >> nomearq;
 				mesh->getGroup(cont++)->setId(nomearq);
 			}
+			else if (temp == "s") {
+				string val;
+				sline >> val;
+			}
 			else if (temp == "f") {
 				if (cont == 0) {
 					mesh->addGrupo(new Group());
@@ -279,35 +286,25 @@ public:
 				
 				mesh->getGroup(cont - 1)->addFaces(new Face());
 
-
-
-
-
-
-
-				//int v1, v2, v3, w;
-//sline >> v1 >> v2 >> v3 >> w;
-
 				string nextVal;
 				sline >> nextVal;
-
+				
 				while (!sline.fail()) {
+					cout << "[ " << nextVal << "]" << endl;
+					vector<string> v = split(nextVal, "/");
 
-					vector<string> v = split("/", nextVal);
 					if (v.size() > 1) {
-						cout << v[0] << endl;
-
+						
 						mesh->getGroup(cont - 1)->getFace(cont2)->addV(std::stoi(v[0]) - 1);
 						
 						if (v.size() > 2) {
+							cout << std::stoi(v[0]) << endl;
 							mesh->getGroup(cont - 1)->getFace(cont2)->addT(std::stoi(v[1]) - 1);
 							mesh->getGroup(cont - 1)->getFace(cont2)->addN(std::stoi(v[2]) - 1);
 						}
 						else {
 							mesh->getGroup(cont - 1)->getFace(cont2)->addT(std::stoi(v[1]) - 1);
 						}
-						
-
 					}
 					else {
 						mesh->getGroup(cont - 1)->getFace(cont2)->addV(std::stoi(nextVal) - 1);
@@ -316,11 +313,6 @@ public:
 					sline >> nextVal;
 				}
 				cont2++;
-
-			//	sline >> w;
-			//	cout << w << " ";
-				//cout << x << y << z;
-				//cout << "\n";
 			}
 			else {// else-if
 				  // Verificar outras possibilidades:

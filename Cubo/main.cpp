@@ -23,25 +23,25 @@ using namespace std;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
-void processInput(GLFWwindow *window, glm::vec3& position, glm::vec3& rotation, glm::vec3& scale);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+
+glm::vec3 position(0.f);
+glm::vec3 rotation(0.f);
+glm::vec3 scale(1.f);
+
+
 int main()
 {
 	ObjReader * obj = new ObjReader();
-	//Mesh * malha = obj->read("teste.obj");
-	//Mesh * malha = obj->read("mesa01.obj");
-	Mesh * malha = obj->read("teste2.obj");
-	
-	//Mesh * malha = obj->read("cenaPaintball.obj");
+	Mesh * malha = obj->read("mesa01.obj");
+	//Mesh * malha = obj->read("teste2.obj");
 
-	//glm::vec2 testete = malha->getIndT(22);
-	//cout << malha->getGroup(0)->getFace(11)->getV(1);
-	//return 1;
-	//normais.
+
 	int numVertices = malha->getVector().size();
 	int numGroups = malha->sizeGroups();
 
@@ -50,38 +50,18 @@ int main()
 	static std::vector<float> vertices;
 	static std::vector<int> indices;
 
-	//float vertices[192];
-	//unsigned int indices[36];
-	//float * vertices = new float[tam];
-	
-	//vertices
-	for (int k = 0; k < numVertices; k++) {/*
-		vertices[k * 8 + 0] = malha->getIndV(k).x;
-		vertices[k * 8 + 1] = malha->getIndV(k).y;
-		vertices[k * 8 + 2] = malha->getIndV(k).z;
-
-		vertices[k * 8 + 3] = malha->getIndT(k).x;
-		vertices[k * 8 + 4] = malha->getIndT(k).y;
-
-		vertices[k * 8 + 5] = malha->getIndN(k).x;
-		vertices[k * 8 + 6] = malha->getIndN(k).y;
-		vertices[k * 8 + 7] = malha->getIndN(k).z;
-		*/
-
-
+	for (int k = 0; k < numVertices; k++) {
 		vertices.push_back(malha->getIndV(k).x);
 		vertices.push_back(malha->getIndV(k).y);
 		vertices.push_back(malha->getIndV(k).z);
-											  
+
 		vertices.push_back(malha->getIndT(k).x);
 		vertices.push_back(malha->getIndT(k).y);
-		//									  
+		
 		vertices.push_back(malha->getIndN(k).x);
 		vertices.push_back(malha->getIndN(k).y);
 		vertices.push_back(malha->getIndN(k).z);
-		
 	}
-
 
 	//faces
 	for (int j = 0; j < numGroups; j++) {
@@ -92,10 +72,7 @@ int main()
 		}
 	}
 
-
 	cout << "[read " << indices.size() << "]" << endl;
-
-
 
 	vector<Material*> materiais;
 	obj->readermaterial(malha->getnomematerial(), materiais);
@@ -176,7 +153,7 @@ int main()
 		"in vec2 TexCoord;"
 		"in vec3 ourNormal;"
 		"out vec4 FragColor;"
-		"uniform sampler2D texture1;"
+		"uniform sampler2D texture;"
 		"uniform vec3 lightPos0;"
 		"uniform vec3 cameraPos;"
 		"uniform vec3 kambiente;"
@@ -194,7 +171,7 @@ int main()
 		"   vec3 posToViewDirVec = normalize(cameraPos - ourPos );"
 		"   float specularConstant = pow(max(dot(posToViewDirVec, reflectDirVec), 0), shiny.x);"
 		"   vec3 specularFinal = kespecular * specularConstant;"
-		"   FragColor = texture(texture1, TexCoord) * (vec4(ambientLight, 1.f) + vec4(diffuseFinal, 1.0f) + vec4(specularFinal, 1.f));"	//saida do resultado
+		"   FragColor = texture(texture, TexCoord) * (vec4(ambientLight, 1.f) + vec4(diffuseFinal, 1.0f) + vec4(specularFinal, 1.f));"	//saida do resultado
 		"}";
 
 	unsigned int fragmentShader;
@@ -225,11 +202,11 @@ int main()
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	
+
 	// texture coord attribute
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	
+
 	// texture coord attribute
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
 	glEnableVertexAttribArray(2);
@@ -242,7 +219,7 @@ int main()
 	int width, height, nrChannels;
 	// texture 1
 	// ---------
-	unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+	unsigned char *data = stbi_load("mesa01.bmp", &width, &height, &nrChannels, 0);
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1);
 	// set the texture wrapping parameters
@@ -252,7 +229,7 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// load image, create texture and generate mipmaps
-	
+
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -270,16 +247,13 @@ int main()
 	//ourShader->use(); // don't forget to activate/use the shader before setting uniforms!
 					 // either set it manually like so:
 	glUseProgram(shaderProgram);
-	glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
+	glUniform1i(glGetUniformLocation(shaderProgram, "texture"), 0);
 	// or set it via the texture class
-	
-	
+
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture1);
 
-	glm::vec3 position(0.f);
-	glm::vec3 rotation(0.f);
-	glm::vec3 scale(1.f);
 
 	glm::mat4 ModelMatrix(1.f);
 	ModelMatrix = glm::translate(ModelMatrix, position);
@@ -322,15 +296,18 @@ int main()
 	glUniform3fv(glGetUniformLocation(shaderProgram, "shiny"), 1, glm::value_ptr(shiny));
 
 	glUseProgram(0);
-
+	glEnable(GL_DEPTH_TEST);
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
 	{
+
+		glPointSize(0.1f); 
+
 		// input
 		// -----
 		processInput(window);
-		processInput(window, position, rotation, scale);
+		glfwSetKeyCallback(window, key_callback);
 
 		// render
 		// ------
@@ -338,7 +315,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(shaderProgram);
-		glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
+		glUniform1i(glGetUniformLocation(shaderProgram, "texture"), 0);
 
 
 		ModelMatrix = glm::mat4(1.f);
@@ -352,7 +329,7 @@ int main()
 
 		glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
 
-		ProjectionMatrix = glm::mat4(1.f);
+		ProjectionMatrix = glm::mat4(1.0f);
 		ProjectionMatrix = glm::perspective(glm::radians(fov), static_cast<float>(framebufferWidth) / framebufferHeight, nearPlane, farPlane);
 
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
@@ -361,7 +338,7 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture1);
 
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
@@ -403,37 +380,53 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow *window, glm::vec3& position, glm::vec3& rotation, glm::vec3& scale)
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
-		position.z += 0.01f;
-	}
+
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		position.z -= 0.01f;
+		if (mods == GLFW_MOD_SHIFT) {
+			scale += 0.01f;
+		}
+		else {
+			scale -= 0.01f;
+		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		position.x += 0.01f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		position.x -= 0.01f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-		rotation.y -= 1.f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-		rotation.y += 1.f;
-	}
+
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-		rotation.x -= 1.f;
+		if (mods == GLFW_MOD_SHIFT) {
+			rotation.y += 1.0f;
+		}
+		else {
+			rotation.y -= 1.0f;
+		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
-		rotation.x += 1.f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-		scale += 0.1f;
-	}
+
 	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-		scale -= 0.1f;
+		if (mods == GLFW_MOD_SHIFT) {
+			position.x += 0.1f;
+		}
+		else {
+			position.x -= 0.1f;
+		}
 	}
-		
+
+	if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+		if (mods == GLFW_MOD_SHIFT) {
+			position.y += 0.1f;
+		}
+		else {
+			position.y -= 0.1f;
+		}
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+		if (mods == GLFW_MOD_SHIFT) {
+			position.z += 0.1f;
+		}
+		else {
+			position.z -= 0.1f;
+		}
+	}
+
 }
